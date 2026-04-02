@@ -1,0 +1,774 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --bg:#040A0F;
+  --bg2:#080F16;
+  --cyan:#00D4FF;
+  --cyan2:#00A8CC;
+  --cyan-dim:rgba(0,212,255,0.15);
+  --amber:#FFB347;
+  --amber-dim:rgba(255,179,71,0.15);
+  --red:#FF4444;
+  --text:#C8E8F0;
+  --muted:#4A7A8A;
+  --earn:#00D4FF;
+  --spend:#FF6B35;
+}
+
+#app{
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-family:'Rajdhani',sans-serif;
+  color:var(--text);
+  padding:0 0 40px;
+  position:relative;
+  overflow:hidden;
+}
+
+#app::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(0,212,255,0.03) 39px,rgba(0,212,255,0.03) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(0,212,255,0.03) 39px,rgba(0,212,255,0.03) 40px);
+  pointer-events:none;
+  z-index:0;
+}
+
+.header{
+  width:100%;
+  padding:20px 24px 8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:relative;
+  z-index:1;
+  border-bottom:1px solid rgba(0,212,255,0.1);
+}
+
+.logo{
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;
+  letter-spacing:3px;
+  color:var(--cyan);
+  text-transform:uppercase;
+}
+
+.status-dot{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:10px;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+.dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--cyan);
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.date-line{
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:2px;
+  text-align:center;
+  margin:12px 0 0;
+  position:relative;
+  z-index:1;
+}
+
+.main-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  width:100%;
+  padding:32px 0 24px;
+  position:relative;
+  z-index:1;
+}
+
+.side-btn{
+  width:56px;height:56px;
+  border-radius:50%;
+  border:1px solid rgba(0,212,255,0.4);
+  background:rgba(0,212,255,0.05);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  font-weight:300;
+  font-family:'Rajdhani',sans-serif;
+  transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;
+  flex-shrink:0;
+  margin:0 20px;
+}
+
+.side-btn.plus{ color:var(--earn); border-color:rgba(0,212,255,0.5); }
+.side-btn.minus{ color:var(--spend); border-color:rgba(255,107,53,0.5); }
+
+.side-btn.plus:hover,.side-btn.plus:active{
+  background:rgba(0,212,255,0.12);
+  border-color:var(--cyan);
+  box-shadow:0 0 20px rgba(0,212,255,0.3);
+}
+.side-btn.minus:hover,.side-btn.minus:active{
+  background:rgba(255,107,53,0.12);
+  border-color:var(--spend);
+  box-shadow:0 0 20px rgba(255,107,53,0.3);
+}
+
+.side-label{
+  font-size:9px;
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;
+  text-align:center;
+  margin-top:8px;
+  color:var(--muted);
+}
+
+.side-btn-wrap{
+  display:flex;flex-direction:column;align-items:center;
+}
+
+.circle-outer{
+  width:180px;height:180px;
+  border-radius:50%;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+.circle-outer::before{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:50%;
+  border:1px solid rgba(0,212,255,0.2);
+}
+
+.circle-outer::after{
+  content:'';
+  position:absolute;
+  inset:8px;
+  border-radius:50%;
+  border:1px solid rgba(0,212,255,0.1);
+}
+
+.circle-svg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  transform:rotate(-90deg);
+}
+
+.circle-bg-track{
+  fill:none;
+  stroke:rgba(0,212,255,0.08);
+  stroke-width:3;
+}
+
+.circle-progress{
+  fill:none;
+  stroke:var(--cyan);
+  stroke-width:3;
+  stroke-linecap:round;
+  transition:stroke-dashoffset 0.5s ease;
+  filter:drop-shadow(0 0 4px rgba(0,212,255,0.6));
+}
+
+.circle-inner{
+  width:140px;height:140px;
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, #0D1F2A 0%, #040A0F 70%);
+  border:1px solid rgba(0,212,255,0.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:2;
+  position:relative;
+}
+
+.circle-label{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  letter-spacing:2px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+.circle-value{
+  font-size:38px;
+  font-weight:700;
+  color:var(--cyan);
+  line-height:1;
+  letter-spacing:-1px;
+  font-family:'Rajdhani',sans-serif;
+  text-shadow:0 0 20px rgba(0,212,255,0.5);
+}
+
+.circle-unit{
+  font-size:11px;
+  color:var(--muted);
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;
+  margin-top:2px;
+}
+
+.scanline{
+  position:absolute;
+  width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.15),transparent);
+  animation:scan 3s linear infinite;
+  pointer-events:none;
+  z-index:0;
+  top:0;
+}
+
+@keyframes scan{0%{top:0%;}100%{top:100%;}}
+
+.divider{
+  width:calc(100% - 48px);
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.3),transparent);
+  margin:0 24px 20px;
+  position:relative;z-index:1;
+}
+
+.section-header{
+  width:100%;
+  padding:0 24px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  position:relative;z-index:1;
+}
+
+.section-tag{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  letter-spacing:3px;
+  color:var(--cyan);
+  text-transform:uppercase;
+}
+
+.section-line{
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,rgba(0,212,255,0.3),transparent);
+}
+
+.history-list{
+  width:100%;
+  padding:0 24px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  position:relative;z-index:1;
+  max-height:300px;
+  overflow-y:auto;
+}
+
+.history-list::-webkit-scrollbar{width:2px;}
+.history-list::-webkit-scrollbar-track{background:transparent;}
+.history-list::-webkit-scrollbar-thumb{background:var(--muted);}
+
+.history-item{
+  background:rgba(0,212,255,0.03);
+  border:1px solid rgba(0,212,255,0.1);
+  border-radius:4px;
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  animation:fadeIn 0.3s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.history-item.spend-item{
+  background:rgba(255,107,53,0.03);
+  border-color:rgba(255,107,53,0.1);
+}
+
+.history-item::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:var(--cyan);
+}
+
+.history-item.spend-item::before{
+  background:var(--spend);
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+
+.item-icon{
+  font-size:18px;
+  flex-shrink:0;
+}
+
+.item-info{flex:1;}
+
+.item-name{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  letter-spacing:0.5px;
+}
+
+.item-time{
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  color:var(--muted);
+  letter-spacing:1px;
+  margin-top:1px;
+}
+
+.item-mins{
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px;
+  font-weight:700;
+}
+
+.item-mins.earn{color:var(--cyan);}
+.item-mins.spend{color:var(--spend);}
+
+.empty-state{
+  text-align:center;
+  padding:32px 0;
+  color:var(--muted);
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  letter-spacing:2px;
+}
+
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  display:flex;
+  align-items:flex-end;
+  z-index:100;
+}
+
+.modal{
+  background:#060D14;
+  border:1px solid rgba(0,212,255,0.2);
+  border-bottom:none;
+  border-radius:16px 16px 0 0;
+  padding:20px 20px 36px;
+  width:100%;
+  animation:slideUp 0.25s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.modal.spend-modal{
+  border-color:rgba(255,107,53,0.25);
+}
+
+.modal::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.5),transparent);
+}
+
+.modal.spend-modal::before{
+  background:linear-gradient(90deg,transparent,rgba(255,107,53,0.5),transparent);
+}
+
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal-handle{
+  width:32px;height:3px;
+  background:rgba(0,212,255,0.3);
+  border-radius:2px;
+  margin:0 auto 18px;
+}
+
+.modal h2{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:16px;
+  text-align:center;
+  letter-spacing:3px;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--cyan);
+}
+
+.modal.spend-modal h2{color:var(--spend);}
+
+.activities-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.activity-btn{
+  background:rgba(0,212,255,0.04);
+  border:1px solid rgba(0,212,255,0.15);
+  border-radius:6px;
+  padding:12px 8px;
+  cursor:pointer;
+  text-align:center;
+  font-family:'Rajdhani',sans-serif;
+  transition:all 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.activity-btn.spend-mode{
+  background:rgba(255,107,53,0.04);
+  border-color:rgba(255,107,53,0.15);
+}
+
+.activity-btn.selected{
+  border-color:var(--cyan);
+  background:rgba(0,212,255,0.1);
+  box-shadow:0 0 12px rgba(0,212,255,0.15);
+}
+
+.activity-btn.spend-mode.selected{
+  border-color:var(--spend);
+  background:rgba(255,107,53,0.1);
+  box-shadow:0 0 12px rgba(255,107,53,0.15);
+}
+
+.act-icon{font-size:22px;display:block;margin-bottom:3px;}
+.act-name{font-size:13px;font-weight:600;display:block;color:var(--text);letter-spacing:0.5px;}
+.act-pts{font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--muted);display:block;margin-top:2px;}
+
+.limit-badge{
+  font-size:9px;
+  font-family:'Share Tech Mono',monospace;
+  background:rgba(255,179,71,0.15);
+  color:var(--amber);
+  padding:2px 6px;
+  border-radius:2px;
+  margin-top:3px;
+  display:inline-block;
+  letter-spacing:0.5px;
+}
+
+.qty-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  margin-bottom:8px;
+}
+
+.qty-btn{
+  width:40px;height:40px;
+  border-radius:50%;
+  border:1px solid rgba(0,212,255,0.3);
+  background:rgba(0,212,255,0.06);
+  color:var(--cyan);
+  font-size:20px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Rajdhani',sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.qty-val{
+  font-size:32px;
+  font-weight:700;
+  min-width:40px;
+  text-align:center;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--text);
+}
+
+.qty-label{
+  font-size:11px;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--muted);
+  text-align:center;
+  margin-bottom:14px;
+  letter-spacing:1px;
+}
+
+.warning-msg{
+  font-size:11px;
+  font-family:'Share Tech Mono',monospace;
+  color:var(--red);
+  text-align:center;
+  margin-bottom:10px;
+  letter-spacing:0.5px;
+}
+
+.confirm-btn{
+  width:100%;
+  padding:14px;
+  border-radius:4px;
+  border:1px solid rgba(0,212,255,0.4);
+  background:rgba(0,212,255,0.08);
+  color:var(--cyan);
+  font-size:14px;
+  font-weight:600;
+  font-family:'Share Tech Mono',monospace;
+  cursor:pointer;
+  letter-spacing:2px;
+  transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.confirm-btn.spend{
+  border-color:rgba(255,107,53,0.4);
+  background:rgba(255,107,53,0.08);
+  color:var(--spend);
+}
+
+.confirm-btn:not(:disabled):hover{
+  background:rgba(0,212,255,0.15);
+  box-shadow:0 0 16px rgba(0,212,255,0.2);
+}
+
+.confirm-btn.spend:not(:disabled):hover{
+  background:rgba(255,107,53,0.15);
+  box-shadow:0 0 16px rgba(255,107,53,0.2);
+}
+
+.confirm-btn:disabled{opacity:0.3;cursor:default;}
+</style>
+
+<div id="app">
+  <div class="scanline"></div>
+
+  <div class="header">
+    <div class="logo">SYS::TIMETRACKER</div>
+    <div class="status-dot">
+      <div class="dot"></div>
+      <span>ONLINE</span>
+    </div>
+  </div>
+
+  <div class="date-line" id="date-line">--</div>
+
+  <div class="main-row">
+    <div class="side-btn-wrap">
+      <button class="side-btn plus" onclick="openModal('earn')">+</button>
+      <div class="side-label">EARN</div>
+    </div>
+
+    <div class="circle-outer">
+      <svg class="circle-svg" viewBox="0 0 180 180">
+        <circle class="circle-bg-track" cx="90" cy="90" r="82"/>
+        <circle class="circle-progress" id="circle-arc" cx="90" cy="90" r="82"
+          stroke-dasharray="515" stroke-dashoffset="515"/>
+      </svg>
+      <div class="circle-inner">
+        <div class="circle-label">SCREEN TIME</div>
+        <div class="circle-value" id="balance-display">0</div>
+        <div class="circle-unit">MIN</div>
+      </div>
+    </div>
+
+    <div class="side-btn-wrap">
+      <button class="side-btn minus" onclick="openModal('spend')">−</button>
+      <div class="side-label">USE</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <div class="section-tag">TODAY LOG</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="history-list" id="history-list">
+    <div class="empty-state">// NO ENTRIES RECORDED</div>
+  </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay" style="display:none;" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <h2 id="modal-title">EARN TIME</h2>
+    <div class="activities-grid" id="activities-grid"></div>
+    <div class="qty-row">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <div class="qty-val" id="qty-val">1</div>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+    <div class="qty-label" id="qty-label">SELECT ACTIVITY</div>
+    <div class="warning-msg" id="warning-msg" style="display:none;"></div>
+    <button class="confirm-btn earn" id="confirm-btn" onclick="confirmLog()" disabled>CONFIRM</button>
+  </div>
+</div>
+
+<script>
+const EARN_ACTIVITIES=[
+  {id:'homework',icon:'📖',name:'Homework',label:'1 page = 15 min'},
+  {id:'read',icon:'📚',name:'Reading',label:'15 min = 15 min'},
+  {id:'walk',icon:'🐕',name:'Dog Walk',label:'15 min = 15 min'},
+  {id:'other',icon:'⭐',name:'Other',label:'15 min = 15 min'},
+];
+const SPEND_ACTIVITIES=[
+  {id:'tv',icon:'📺',name:'TV',label:'15 min',limitKey:'tv'},
+  {id:'computer',icon:'💻',name:'Computer',label:'15 min',limitKey:'computer'},
+  {id:'phone',icon:'📱',name:'Phone',label:'15 min',limitKey:'phone'},
+];
+const SCREEN_LIMIT=4;
+const CIRCUMFERENCE=515;
+
+let state=loadState();
+let modalMode='earn';
+let selectedActivity=null;
+let qty=1;
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem('timetracker_v2');
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s.date!==today()){s.history=[];s.spentToday={};s.date=today();}
+      return s;
+    }
+  }catch(e){}
+  return{balance:0,history:[],spentToday:{},date:today()};
+}
+
+function saveState(){localStorage.setItem('timetracker_v2',JSON.stringify(state));}
+
+function today(){return new Date().toISOString().slice(0,10);}
+
+function render(){
+  const bal=state.balance;
+  document.getElementById('balance-display').textContent=bal;
+
+  const maxDisplay=120;
+  const progress=Math.min(bal/maxDisplay,1);
+  const offset=CIRCUMFERENCE-(progress*CIRCUMFERENCE);
+  document.getElementById('circle-arc').style.strokeDashoffset=offset;
+
+  const d=new Date();
+  document.getElementById('date-line').textContent=
+    d.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+
+  const list=document.getElementById('history-list');
+  if(state.history.length===0){
+    list.innerHTML='<div class="empty-state">// NO ENTRIES RECORDED</div>';
+  }else{
+    list.innerHTML=[...state.history].reverse().map(h=>`
+      <div class="history-item ${h.type==='spend'?'spend-item':''}">
+        <div class="item-icon">${h.icon}</div>
+        <div class="item-info">
+          <div class="item-name">${h.name}</div>
+          <div class="item-time">${h.timestamp}</div>
+        </div>
+        <div class="item-mins ${h.type}">${h.type==='earn'?'+':'−'}${h.mins} MIN</div>
+      </div>
+    `).join('');
+  }
+}
+
+function openModal(mode){
+  modalMode=mode;
+  selectedActivity=null;
+  qty=1;
+  const m=document.getElementById('modal');
+  m.className=`modal${mode==='spend'?' spend-modal':''}`;
+  document.getElementById('modal-title').textContent=mode==='earn'?'// EARN TIME':'// USE TIME';
+  document.getElementById('confirm-btn').className=`confirm-btn ${mode}`;
+  document.getElementById('warning-msg').style.display='none';
+
+  const acts=mode==='earn'?EARN_ACTIVITIES:SPEND_ACTIVITIES;
+  document.getElementById('activities-grid').innerHTML=acts.map(a=>{
+    const spent=(state.spentToday[a.id]||0);
+    const atLimit=mode==='spend'&&spent>=SCREEN_LIMIT;
+    return`<button class="activity-btn ${mode==='spend'?'spend-mode':''}"
+      onclick="selectActivity('${a.id}')"
+      style="${atLimit?'opacity:0.35;pointer-events:none':''}"
+    >
+      <span class="act-icon">${a.icon}</span>
+      <span class="act-name">${a.name}</span>
+      <span class="act-pts">${a.label}</span>
+      ${mode==='spend'?`<span class="limit-badge">${spent*15}/60 MIN</span>`:''}
+    </button>`;
+  }).join('');
+
+  updateQtyUI();
+  document.getElementById('modal-overlay').style.display='flex';
+}
+
+function closeModalOutside(e){
+  if(e.target===document.getElementById('modal-overlay'))closeModal();
+}
+
+function closeModal(){document.getElementById('modal-overlay').style.display='none';}
+
+function selectActivity(id){
+  const acts=modalMode==='earn'?EARN_ACTIVITIES:SPEND_ACTIVITIES;
+  selectedActivity=acts.find(a=>a.id===id)||null;
+  document.querySelectorAll('.activity-btn').forEach(b=>b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  qty=1;
+  updateQtyUI();
+}
+
+function changeQty(d){qty=Math.max(1,qty+d);updateQtyUI();}
+
+function updateQtyUI(){
+  document.getElementById('qty-val').textContent=qty;
+  const mins=qty*15;
+  if(!selectedActivity){
+    document.getElementById('qty-label').textContent='SELECT ACTIVITY';
+    document.getElementById('confirm-btn').disabled=true;
+    document.getElementById('confirm-btn').textContent='CONFIRM';
+    return;
+  }
+  document.getElementById('qty-label').textContent=`= ${mins} MIN`;
+  let warn='',disabled=false;
+  if(modalMode==='spend'){
+    const spent=(state.spentToday[selectedActivity.id]||0);
+    const rem=SCREEN_LIMIT-spent;
+    if(qty>rem){warn=`MAX ${rem*15} MORE MIN TODAY`;disabled=true;}
+    if(state.balance<mins){warn=`INSUFFICIENT BALANCE: ${state.balance} MIN`;disabled=true;}
+  }
+  const w=document.getElementById('warning-msg');
+  if(warn){w.textContent=warn;w.style.display='block';}else{w.style.display='none';}
+  document.getElementById('confirm-btn').disabled=disabled;
+  document.getElementById('confirm-btn').textContent=
+    modalMode==='earn'?`CONFIRM +${mins} MIN`:`CONFIRM −${mins} MIN`;
+}
+
+function confirmLog(){
+  if(!selectedActivity)return;
+  const mins=qty*15;
+  const ts=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if(modalMode==='earn'){
+    state.balance+=mins;
+    state.history.push({type:'earn',icon:selectedActivity.icon,name:selectedActivity.name,mins,timestamp:ts});
+  }else{
+    state.balance=Math.max(0,state.balance-mins);
+    state.spentToday[selectedActivity.id]=(state.spentToday[selectedActivity.id]||0)+qty;
+    state.history.push({type:'spend',icon:selectedActivity.icon,name:selectedActivity.name,mins,timestamp:ts});
+  }
+  state.date=today();
+  saveState();
+  render();
+  closeModal();
+}
+
+render();
+</script>
