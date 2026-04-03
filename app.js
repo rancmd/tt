@@ -1,7 +1,9 @@
 // ── Constants ──
-const SCREEN_LIMIT_PER_TYPE = 4; // 4 × 15 = 60 min per screen type per day
-const CIRC_R = 96;
-const CIRC_C = 2 * Math.PI * CIRC_R; // ~603
+const MAX_TAPS = 4; // 4 taps = 60 min → 5th tap resets to 0
+
+// Outer ring: 0–60 min arc (one full hour)
+const OUTER_R = 128;
+const OUTER_C = +(2 * Math.PI * OUTER_R).toFixed(2); // ~804
 
 const EARN_CATS = [
   { id: 'homework', icon: '📖', name: 'Homework',  pts: '1 page = 15 min' },
@@ -11,15 +13,15 @@ const EARN_CATS = [
 ];
 
 const SPEND_CATS = [
-  { id: 'tv',       icon: '📺', name: 'TV',       pts: '15 min', limitKey: 'tv'       },
-  { id: 'computer', icon: '💻', name: 'Computer', pts: '15 min', limitKey: 'computer' },
-  { id: 'phone',    icon: '📱', name: 'Phone',    pts: '15 min', limitKey: 'phone'    },
-  { id: 'tablet',   icon: '📟', name: 'Tablet',   pts: '15 min', limitKey: 'tablet'   },
+  { id: 'tv',       icon: '📺', name: 'TV',       pts: '15 min' },
+  { id: 'computer', icon: '💻', name: 'Computer', pts: '15 min' },
+  { id: 'phone',    icon: '📱', name: 'Phone',    pts: '15 min' },
+  { id: 'tablet',   icon: '📟', name: 'Tablet',   pts: '15 min' },
 ];
 
 // ── State ──
 let state = loadState();
-let selections = {}; // { catId: count }
+let currentSel = null; // { id, side, taps }
 
 // ── Persistence ──
 function today() {
@@ -28,43 +30,48 @@ function today() {
 
 function loadState() {
   try {
-    const raw = localStorage.getItem('trkr_v3');
+    const raw = localStorage.getItem('trkr_v6');
     if (raw) {
       const s = JSON.parse(raw);
       if (s.date !== today()) {
         s.history = [];
-        s.spentToday = {};
         s.date = today();
       }
       return s;
     }
   } catch (e) {}
-  return { balance: 0, history: [], spentToday: {}, date: today() };
+  return { balance: 0, history: [], date: today() };
 }
 
 function saveState() {
   state.date = today();
-  localStorage.setItem('trkr_v3', JSON.stringify(state));
+  localStorage.setItem('trkr_v6', JSON.stringify(state));
 }
 
 // ── Render ──
 function render() {
-  // Balance circle
   const bal = state.balance;
   document.getElementById('balance-val').textContent = bal;
 
-  const maxDisplay = 120;
-  const progress = Math.min(bal / maxDisplay, 1);
-  const offset = CIRC_C * (1 - progress);
-  document.getElementById('ring-progress').style.strokeDashoffset = offset;
-  document.getElementById('ring-progress').setAttribute('stroke-dasharray', CIRC_C);
+  // Outer ring: current minute within the hour (0–60)
+  const minInHour = bal % 60;
+  const outerOffset = OUTER_C * (1 - minInHour / 60);
+  const outerRing = document.getElementById('ring-outer');
+  outerRing.setAttribute('stroke-dasharray', OUTER_C);
+  outerRing.style.strokeDashoffset = outerOffset;
+
+  // Inner ring: completed full hours (0–4), shown as filled quarters
+  const completedHours = Math.min(Math.floor(bal / 60), 4);
+  if (typeof window.setQuartersFilled === 'function') {
+    window.setQuartersFilled(completedHours);
+  }
 
   // Date
   const d = new Date();
   document.getElementById('header-date').textContent =
-    d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Log list
+  // Log
   const list = document.getElementById('log-list');
   if (!state.history.length) {
     list.innerHTML = '<div class="log-empty">No activity logged today</div>';
@@ -83,28 +90,11 @@ function render() {
 }
 
 // ── Overlay ──
-let overlayMode = 'earn';
-
-function openOverlay(mode) {
-  overlayMode = mode;
-  selections = {};
-
-  const overlay = document.getElementById('overlay');
-  const sheet = document.getElementById('overlay-sheet');
-
-  // Build sheet title
-  document.getElementById('sheet-title').textContent =
-    mode === 'earn' ? 'Earn Screen Time' : 'Use Screen Time';
-  document.getElementById('sheet-subtitle').textContent =
-    mode === 'earn'
-      ? 'Tap activities to add — each tap = 15 min'
-      : 'Tap to log what was used — each tap = 15 min';
-
-  // Build categories
+function openOverlay() {
+  currentSel = null;
   buildCategories();
   updateConfirm();
-
-  overlay.classList.add('open');
+  document.getElementById('overlay').classList.add('open');
 }
 
 function closeOverlay() {
@@ -112,11 +102,8 @@ function closeOverlay() {
 }
 
 function buildCategories() {
-  const earnCol = document.getElementById('earn-col');
-  const spendCol = document.getElementById('spend-col');
-
-  earnCol.innerHTML = EARN_CATS.map(cat => `
-    <button class="cat-btn earn-btn" id="cat-${cat.id}" onclick="tapCat('${cat.id}', 'earn')">
+  document.getElementById('earn-col').innerHTML = EARN_CATS.map(cat => `
+    <button class="cat-btn earn-btn" id="cat-${cat.id}" onclick="tapCat('${cat.id}','earn')">
       <div class="cat-top">
         <span class="cat-icon">${cat.icon}</span>
         <span class="cat-count" id="count-${cat.id}">0</span>
@@ -126,111 +113,91 @@ function buildCategories() {
     </button>
   `).join('');
 
-  spendCol.innerHTML = SPEND_CATS.map(cat => {
-    const spent = state.spentToday[cat.id] || 0;
-    const atLimit = spent >= SCREEN_LIMIT_PER_TYPE;
-    const usedMins = spent * 15;
-    return `
-      <button class="cat-btn spend-btn ${atLimit ? 'disabled-cat' : ''}"
-        id="cat-${cat.id}" onclick="tapCat('${cat.id}', 'spend')">
-        <div class="cat-top">
-          <span class="cat-icon">${cat.icon}</span>
-          <span class="cat-count" id="count-${cat.id}">0</span>
-        </div>
-        <div class="cat-name">${cat.name}</div>
-        <div class="cat-pts">${cat.pts} <span class="limit-pill">${usedMins}/60</span></div>
-      </button>
-    `;
-  }).join('');
+  document.getElementById('spend-col').innerHTML = SPEND_CATS.map(cat => `
+    <button class="cat-btn spend-btn" id="cat-${cat.id}" onclick="tapCat('${cat.id}','spend')">
+      <div class="cat-top">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-count" id="count-${cat.id}">0</span>
+      </div>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-pts">${cat.pts}</div>
+    </button>
+  `).join('');
 }
 
 function tapCat(id, side) {
-  if (overlayMode !== side) return;
-
-  if (!selections[id]) selections[id] = 0;
-  selections[id]++;
-
-  // If spend, check limit
-  if (side === 'spend') {
-    const cat = SPEND_CATS.find(c => c.id === id);
-    const alreadySpent = state.spentToday[id] || 0;
-    const maxMore = SCREEN_LIMIT_PER_TYPE - alreadySpent;
-    if (selections[id] > maxMore) {
-      selections[id] = maxMore;
+  // Switching to a different category — clear previous
+  if (!currentSel || currentSel.id !== id) {
+    if (currentSel) {
+      const oldBtn   = document.getElementById(`cat-${currentSel.id}`);
+      const oldCount = document.getElementById(`count-${currentSel.id}`);
+      if (oldBtn)   { oldBtn.classList.remove('active'); }
+      if (oldCount) { oldCount.classList.remove('visible'); oldCount.textContent = '0'; }
     }
+    currentSel = { id, side, taps: 0 };
   }
 
-  // Update count badge
-  const countEl = document.getElementById(`count-${id}`);
-  const btn = document.getElementById(`cat-${id}`);
-  const n = selections[id];
-  countEl.textContent = n;
-  if (n > 0) {
-    countEl.classList.add('visible');
-    btn.classList.add('active');
+  // Increment — if already at max (4), next tap resets to 0
+  currentSel.taps++;
+  if (currentSel.taps > MAX_TAPS) {
+    currentSel.taps = 0;
   }
+
+  const n = currentSel.taps;
+  const countEl = document.getElementById(`count-${id}`);
+  const btn     = document.getElementById(`cat-${id}`);
+
+  countEl.textContent = n;
+  countEl.classList.toggle('visible', n > 0);
+  btn.classList.toggle('active', n > 0);
 
   updateConfirm();
 }
 
 function updateConfirm() {
-  const totalUnits = Object.values(selections).reduce((a, b) => a + b, 0);
-  const totalMins = totalUnits * 15;
-
-  const totalEl = document.getElementById('confirm-total');
-  const bdEl = document.getElementById('confirm-breakdown');
-  const btn = document.getElementById('confirm-btn');
+  const btn  = document.getElementById('confirm-btn');
   const warn = document.getElementById('confirm-warning');
 
-  totalEl.innerHTML = `${totalMins} <span>min</span>`;
+  const hasSel = currentSel && currentSel.taps > 0;
 
-  // Build breakdown string
-  const cats = overlayMode === 'earn' ? EARN_CATS : SPEND_CATS;
-  const parts = cats
-    .filter(c => selections[c.id] > 0)
-    .map(c => `${c.icon} ×${selections[c.id]}`);
-  bdEl.textContent = parts.join('  ·  ');
+  if (!hasSel) {
+    btn.disabled = true;
+    btn.textContent = 'Confirm';
+    warn.textContent = '';
+    return;
+  }
 
-  let warning = '';
-  let disabled = totalMins === 0;
+  const mins = currentSel.taps * 15;
+  let warning  = '';
+  let disabled = false;
 
-  if (overlayMode === 'spend') {
-    if (totalMins > state.balance) {
-      warning = `Not enough time — balance is ${state.balance} min`;
-      disabled = true;
-    }
+  if (currentSel.side === 'spend' && mins > state.balance) {
+    warning  = `Not enough balance — you have ${state.balance} min`;
+    disabled = true;
   }
 
   warn.textContent = warning;
-  btn.disabled = disabled;
-  btn.className = `confirm-btn ${overlayMode === 'spend' ? 'spend-confirm' : ''}`;
-  btn.textContent = disabled && totalMins === 0
-    ? 'Tap to select'
-    : `${overlayMode === 'earn' ? 'Add' : 'Use'} ${totalMins} min`;
+  btn.disabled     = disabled;
+
+  const sign = currentSel.side === 'earn' ? '+' : '−';
+  btn.textContent = `Confirm ${sign}${mins} min`;
 }
 
 function confirmLog() {
-  const cats = overlayMode === 'earn' ? EARN_CATS : SPEND_CATS;
-  const ts = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  if (!currentSel || currentSel.taps === 0) return;
 
-  cats.forEach(cat => {
-    const n = selections[cat.id] || 0;
-    if (!n) return;
-    const mins = n * 15;
+  const ts   = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const mins = currentSel.taps * 15;
+  const { id, side } = currentSel;
+  const cat  = [...EARN_CATS, ...SPEND_CATS].find(c => c.id === id);
 
-    if (overlayMode === 'earn') {
-      state.balance += mins;
-      state.history.push({
-        type: 'earn', icon: cat.icon, name: cat.name, mins, timestamp: ts,
-      });
-    } else {
-      state.balance = Math.max(0, state.balance - mins);
-      state.spentToday[cat.id] = (state.spentToday[cat.id] || 0) + n;
-      state.history.push({
-        type: 'spend', icon: cat.icon, name: cat.name, mins, timestamp: ts,
-      });
-    }
-  });
+  if (side === 'earn') {
+    state.balance += mins;
+    state.history.push({ type: 'earn', icon: cat.icon, name: cat.name, mins, timestamp: ts });
+  } else {
+    state.balance = Math.max(0, state.balance - mins);
+    state.history.push({ type: 'spend', icon: cat.icon, name: cat.name, mins, timestamp: ts });
+  }
 
   saveState();
   render();
@@ -240,10 +207,6 @@ function confirmLog() {
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
   render();
-
-  // Close overlay on backdrop click
   document.getElementById('overlay-backdrop').addEventListener('click', closeOverlay);
-
-  // Prevent scroll bleed
-  document.getElementById('overlay-sheet').addEventListener('touchmove', e => e.stopPropagation());
+  document.getElementById('log-list').addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
 });

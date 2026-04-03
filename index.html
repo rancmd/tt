@@ -13,39 +13,52 @@
 
 <div id="app">
 
-  <!-- Header -->
   <div class="header">
-    <div class="header-title">TIME TRACKER</div>
     <div class="header-date" id="header-date">—</div>
   </div>
 
-  <!-- Circle -->
   <div class="circle-section">
-    <div class="circle-wrap" onclick="openOverlay('earn')">
-      <svg class="circle-svg" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="circle-wrap" onclick="openOverlay()">
+      <svg class="circle-svg" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- ── INNER ring: 4 quarters = 4 hours ── -->
+        <!-- Backgrounds for each quarter -->
+        <circle class="ring-inner-bg" cx="145" cy="145" r="104" />
+
+        <!-- Quarter arcs — each = 1 hour (90° each, with small gap) -->
+        <!-- Q1: 0°→90° (top → right), gap 3° each side → arc 84° -->
+        <circle class="ring-quarter" id="q1" cx="145" cy="145" r="104"
+          stroke-dasharray="0 652"
+          stroke-dashoffset="0" />
+        <circle class="ring-quarter" id="q2" cx="145" cy="145" r="104"
+          stroke-dasharray="0 652"
+          stroke-dashoffset="0" />
+        <circle class="ring-quarter" id="q3" cx="145" cy="145" r="104"
+          stroke-dasharray="0 652"
+          stroke-dashoffset="0" />
+        <circle class="ring-quarter" id="q4" cx="145" cy="145" r="104"
+          stroke-dasharray="0 652"
+          stroke-dashoffset="0" />
+
+        <!-- ── OUTER ring: 60-min arc ── -->
         <!-- Tick marks -->
         <g id="ticks"></g>
-        <!-- Track ring -->
-        <circle class="ring-bg" cx="110" cy="110" r="96" />
-        <!-- Progress ring -->
-        <circle
-          class="ring-progress"
-          id="ring-progress"
-          cx="110" cy="110" r="96"
-          stroke-dasharray="603"
-          stroke-dashoffset="603"
-        />
+        <!-- Track -->
+        <circle class="ring-outer-bg" cx="145" cy="145" r="128" />
+        <!-- Progress -->
+        <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
+          stroke-dasharray="804" stroke-dashoffset="804" />
+
       </svg>
+
       <button class="circle-btn" aria-label="Open activity menu">
         <span class="circle-label">SCREEN TIME</span>
         <span class="circle-value" id="balance-val">0</span>
         <span class="circle-unit">minutes</span>
       </button>
     </div>
-    <div class="circle-hint">Tap to earn or use time</div>
   </div>
 
-  <!-- Log -->
   <div class="log-section">
     <div class="log-header">
       <span class="log-title">Today's Log</span>
@@ -61,33 +74,24 @@
 <div class="overlay" id="overlay">
   <div class="overlay-backdrop" id="overlay-backdrop"></div>
   <div class="overlay-sheet" id="overlay-sheet">
+
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-title">Earn Screen Time</div>
-    <div class="sheet-subtitle" id="sheet-subtitle">Tap activities — each tap = 15 min</div>
+    <div class="sheet-subtitle">Tap a category — each tap = 15 min</div>
 
     <div class="categories-row">
-      <!-- Earn column -->
-      <div>
+      <div class="cat-col-wrap">
         <div class="col-label earn">+ Earn</div>
         <div class="cat-col" id="earn-col"></div>
       </div>
-      <!-- Spend column -->
-      <div>
+      <div class="cat-col-wrap">
         <div class="col-label spend">− Use</div>
         <div class="cat-col" id="spend-col"></div>
       </div>
     </div>
 
-    <!-- Confirm -->
-    <div class="confirm-area">
-      <div class="confirm-summary">
-        <div class="confirm-total" id="confirm-total">0 <span>min</span></div>
-        <div class="confirm-breakdown" id="confirm-breakdown"></div>
-      </div>
-      <button class="confirm-btn" id="confirm-btn" onclick="confirmLog()" disabled>
-        Tap to select
-      </button>
-    </div>
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmLog()" disabled>
+      Confirm
+    </button>
     <div class="warning" id="confirm-warning"></div>
 
   </div>
@@ -95,26 +99,68 @@
 
 <script src="app.js"></script>
 <script>
-  // Draw tick marks on SVG
+(function() {
+  const cx = 145, cy = 145;
+
+  // ── Outer ring tick marks (r=128) ──
   const ticks = document.getElementById('ticks');
-  const cx = 110, cy = 110, r = 96;
   for (let i = 0; i < 60; i++) {
     const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
     const isMaj = i % 5 === 0;
-    const inner = r - (isMaj ? 8 : 4);
-    const outer = r - 1;
-    const x1 = cx + inner * Math.cos(angle);
-    const y1 = cy + inner * Math.sin(angle);
-    const x2 = cx + outer * Math.cos(angle);
-    const y2 = cy + outer * Math.sin(angle);
+    const rOuter = 128;
+    const inner = rOuter - (isMaj ? 10 : 5);
+    const outer = rOuter - 1;
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('x1', cx + inner * Math.cos(angle));
+    line.setAttribute('y1', cy + inner * Math.sin(angle));
+    line.setAttribute('x2', cx + outer * Math.cos(angle));
+    line.setAttribute('y2', cy + outer * Math.sin(angle));
     line.setAttribute('stroke', 'rgba(26,28,24,0.12)');
     line.setAttribute('stroke-width', isMaj ? 1.5 : 0.8);
     line.setAttribute('stroke-linecap', 'round');
     ticks.appendChild(line);
   }
+
+  // ── Inner quarter setup (r=104) ──
+  // Each quarter spans 90° minus 4° total gap (2° each side)
+  // circumference = 2π×104 ≈ 653.5
+  // arc per quarter (84° of 360°) = 653.5 × 84/360 ≈ 152.5
+  // gap per quarter (6° of 360°) = 653.5 × 6/360 ≈ 10.9
+  const rInner = 104;
+  const circ = 2 * Math.PI * rInner;
+  const gapDeg = 6;
+  const arcDeg = 90 - gapDeg;
+  const arcLen = circ * (arcDeg / 360);
+  const gapLen = circ * (gapDeg / 360);
+  // offset so arc starts at gap/2 after quarter start
+  // Q1 starts at -90° (top), Q2 at 0°, Q3 at 90°, Q4 at 180°
+
+  // We expose this function for app.js to call when rendering
+  window.setupInnerQuarters = function() {
+    ['q1','q2','q3','q4'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      // stroke-dasharray: [arcLen, rest-of-circumference]
+      el.setAttribute('stroke-dasharray', `${arcLen} ${circ - arcLen}`);
+      // stroke-dashoffset: rotate so this quarter starts at the right angle
+      // Quarter i starts at angle: i * 90° - 90° (offset for SVG rotation)
+      // In dashoffset terms: offset = circ - (startAngleFraction * circ) + gapLen/2
+      const startFrac = (i * 90) / 360;
+      const offset = circ - (startFrac * circ) + (gapLen / 2);
+      el.setAttribute('stroke-dashoffset', offset);
+      // Initially invisible
+      el.style.opacity = '0';
+    });
+  };
+
+  window.setQuartersFilled = function(completedHours) {
+    const count = Math.min(completedHours, 4);
+    ['q1','q2','q3','q4'].forEach((id, i) => {
+      document.getElementById(id).style.opacity = i < count ? '1' : '0';
+    });
+  };
+
+  setupInnerQuarters();
+})();
 </script>
 </body>
 </html>
