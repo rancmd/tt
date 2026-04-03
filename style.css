@@ -13,7 +13,7 @@
 :root {
   --bg: #EEF0EB;
   --surface: #F5F6F2;
-  --surface2: #E8EAE4;
+  --surface2: #E2E4DE;
   --card: #FFFFFF;
   --text: #1A1C18;
   --text2: #6B6F66;
@@ -21,7 +21,7 @@
   --accent: #C8F135;
   --accent-dark: #7FA010;
   --accent-dim: rgba(200,241,53,0.22);
-  --accent-inner: rgba(200,241,53,0.45);
+  --accent-quarter: rgba(200,241,53,0.55);
   --border: rgba(26,28,24,0.08);
   --shadow: 0 2px 16px rgba(26,28,24,0.07);
   --radius: 20px;
@@ -67,7 +67,7 @@ body {
   letter-spacing: 0.3px;
 }
 
-/* ── Circle ── */
+/* ── Circle section ── */
 .circle-section {
   flex-shrink: 0;
   display: flex;
@@ -83,10 +83,7 @@ body {
   cursor: pointer;
 }
 
-.circle-wrap:active .circle-btn {
-  transform: scale(0.97);
-}
-
+/* Main rings SVG */
 .circle-svg {
   position: absolute;
   inset: 0;
@@ -95,22 +92,33 @@ body {
   transform: rotate(-90deg);
 }
 
-/* Inner ring: 4 quarters (hours) */
+/* Reset indicator SVG (overlaid, same size) */
+.reset-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* ── Inner ring (quarters) ── */
 .ring-inner-bg {
   fill: none;
   stroke: var(--surface2);
-  stroke-width: 10;
+  stroke-width: 12;
 }
 
 .ring-quarter {
   fill: none;
-  stroke: var(--accent-inner);
-  stroke-width: 10;
+  stroke: var(--accent-quarter);
+  stroke-width: 12;
   stroke-linecap: butt;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.35s ease;
 }
 
-/* Outer ring: 60-min progress */
+/* ── Outer ring (60-min sweep) ── */
 .ring-outer-bg {
   fill: none;
   stroke: var(--surface2);
@@ -125,9 +133,19 @@ body {
   transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Reset ring (long-press feedback) ── */
+.reset-ring {
+  fill: none;
+  stroke: #FF5C5C;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.05s linear;
+}
+
+/* ── Circle button (center) ── */
 .circle-btn {
   position: absolute;
-  inset: 30px;
+  inset: 44px;
   border-radius: 50%;
   background: var(--card);
   box-shadow: var(--shadow);
@@ -142,8 +160,8 @@ body {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.circle-btn:active {
-  box-shadow: 0 1px 6px rgba(26,28,24,0.06);
+.circle-btn.pressing {
+  box-shadow: 0 0 0 3px rgba(255,92,92,0.25);
 }
 
 .circle-label {
@@ -266,6 +284,30 @@ body {
 .log-mins.earn  { color: var(--accent-dark); }
 .log-mins.spend { color: var(--text2); }
 
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 22px;
+  border-radius: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 200;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ── Overlay ── */
 .overlay {
   position: fixed;
@@ -327,7 +369,6 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Categories ── */
 .categories-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,7 +471,6 @@ body {
   color: var(--text3);
 }
 
-/* ── Confirm button ── */
 .confirm-btn {
   width: 100%;
   background: var(--accent);

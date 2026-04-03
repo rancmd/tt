@@ -8,6 +8,9 @@
   <meta name="theme-color" content="#EEF0EB" />
   <title>Time Tracker</title>
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Favicon: simple timer SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='18' r='11' fill='none' stroke='%231A1C18' stroke-width='2.5'/><path d='M16 18 L16 10' stroke='%23C8F135' stroke-width='2.5' stroke-linecap='round'/><path d='M16 18 L21 13' stroke='%231A1C18' stroke-width='2' stroke-linecap='round'/><rect x='13' y='4' width='6' height='2.5' rx='1.25' fill='%231A1C18'/></svg>" />
 </head>
 <body>
 
@@ -18,44 +21,43 @@
   </div>
 
   <div class="circle-section">
-    <div class="circle-wrap" onclick="openOverlay()">
+    <!-- Long-press 3s = reset -->
+    <div class="circle-wrap" id="circle-wrap">
+
       <svg class="circle-svg" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
 
-        <!-- ── INNER ring: 4 quarters = 4 hours ── -->
-        <!-- Backgrounds for each quarter -->
-        <circle class="ring-inner-bg" cx="145" cy="145" r="104" />
+        <!-- INNER ring r=108: visible between button (r=101) and outer ticks (r=118) -->
+        <!-- C=678.58, arc=159.47, rest=519.12 -->
+        <circle class="ring-inner-bg" cx="145" cy="145" r="108" />
+        <circle class="ring-quarter" id="q1" cx="145" cy="145" r="108"
+          stroke-dasharray="159.47 519.12" stroke-dashoffset="678.58" style="opacity:0" />
+        <circle class="ring-quarter" id="q2" cx="145" cy="145" r="108"
+          stroke-dasharray="159.47 519.12" stroke-dashoffset="508.94" style="opacity:0" />
+        <circle class="ring-quarter" id="q3" cx="145" cy="145" r="108"
+          stroke-dasharray="159.47 519.12" stroke-dashoffset="339.29" style="opacity:0" />
+        <circle class="ring-quarter" id="q4" cx="145" cy="145" r="108"
+          stroke-dasharray="159.47 519.12" stroke-dashoffset="169.65" style="opacity:0" />
 
-        <!-- Quarter arcs — each = 1 hour (90° each, with small gap) -->
-        <!-- Q1: 0°→90° (top → right), gap 3° each side → arc 84° -->
-        <circle class="ring-quarter" id="q1" cx="145" cy="145" r="104"
-          stroke-dasharray="0 652"
-          stroke-dashoffset="0" />
-        <circle class="ring-quarter" id="q2" cx="145" cy="145" r="104"
-          stroke-dasharray="0 652"
-          stroke-dashoffset="0" />
-        <circle class="ring-quarter" id="q3" cx="145" cy="145" r="104"
-          stroke-dasharray="0 652"
-          stroke-dashoffset="0" />
-        <circle class="ring-quarter" id="q4" cx="145" cy="145" r="104"
-          stroke-dasharray="0 652"
-          stroke-dashoffset="0" />
-
-        <!-- ── OUTER ring: 60-min arc ── -->
-        <!-- Tick marks -->
+        <!-- ── OUTER ring: 60-min sweep ── -->
         <g id="ticks"></g>
-        <!-- Track -->
-        <circle class="ring-outer-bg" cx="145" cy="145" r="128" />
-        <!-- Progress -->
+        <circle class="ring-outer-bg"  cx="145" cy="145" r="128" />
         <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
           stroke-dasharray="804" stroke-dashoffset="804" />
 
       </svg>
 
-      <button class="circle-btn" aria-label="Open activity menu">
+      <button class="circle-btn" id="circle-btn" aria-label="Open activity menu">
         <span class="circle-label">SCREEN TIME</span>
         <span class="circle-value" id="balance-val">0</span>
         <span class="circle-unit">minutes</span>
       </button>
+
+      <!-- Reset ring fills during long-press -->
+      <svg class="reset-ring-svg" viewBox="0 0 290 290" id="reset-svg" style="opacity:0;">
+        <circle class="reset-ring" id="reset-ring" cx="145" cy="145" r="136"
+          stroke-dasharray="855" stroke-dashoffset="855" />
+      </svg>
+
     </div>
   </div>
 
@@ -69,6 +71,9 @@
   </div>
 
 </div>
+
+<!-- Reset confirm toast -->
+<div class="toast" id="toast">Reset complete</div>
 
 <!-- Overlay -->
 <div class="overlay" id="overlay">
@@ -99,67 +104,28 @@
 
 <script src="app.js"></script>
 <script>
-(function() {
+(function () {
   const cx = 145, cy = 145;
 
-  // ── Outer ring tick marks (r=128) ──
+  // ── Outer tick marks (r = 128) ──
   const ticks = document.getElementById('ticks');
   for (let i = 0; i < 60; i++) {
-    const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
-    const isMaj = i % 5 === 0;
-    const rOuter = 128;
-    const inner = rOuter - (isMaj ? 10 : 5);
-    const outer = rOuter - 1;
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', cx + inner * Math.cos(angle));
-    line.setAttribute('y1', cy + inner * Math.sin(angle));
-    line.setAttribute('x2', cx + outer * Math.cos(angle));
-    line.setAttribute('y2', cy + outer * Math.sin(angle));
+    const angle  = (i / 60) * 2 * Math.PI - Math.PI / 2;
+    const isMaj  = i % 5 === 0;
+    const rO     = 128;
+    const inner  = rO - (isMaj ? 10 : 5);
+    const line   = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx + inner  * Math.cos(angle));
+    line.setAttribute('y1', cy + inner  * Math.sin(angle));
+    line.setAttribute('x2', cx + (rO-1) * Math.cos(angle));
+    line.setAttribute('y2', cy + (rO-1) * Math.sin(angle));
     line.setAttribute('stroke', 'rgba(26,28,24,0.12)');
     line.setAttribute('stroke-width', isMaj ? 1.5 : 0.8);
     line.setAttribute('stroke-linecap', 'round');
     ticks.appendChild(line);
   }
 
-  // ── Inner quarter setup (r=104) ──
-  // Each quarter spans 90° minus 4° total gap (2° each side)
-  // circumference = 2π×104 ≈ 653.5
-  // arc per quarter (84° of 360°) = 653.5 × 84/360 ≈ 152.5
-  // gap per quarter (6° of 360°) = 653.5 × 6/360 ≈ 10.9
-  const rInner = 104;
-  const circ = 2 * Math.PI * rInner;
-  const gapDeg = 6;
-  const arcDeg = 90 - gapDeg;
-  const arcLen = circ * (arcDeg / 360);
-  const gapLen = circ * (gapDeg / 360);
-  // offset so arc starts at gap/2 after quarter start
-  // Q1 starts at -90° (top), Q2 at 0°, Q3 at 90°, Q4 at 180°
-
-  // We expose this function for app.js to call when rendering
-  window.setupInnerQuarters = function() {
-    ['q1','q2','q3','q4'].forEach((id, i) => {
-      const el = document.getElementById(id);
-      // stroke-dasharray: [arcLen, rest-of-circumference]
-      el.setAttribute('stroke-dasharray', `${arcLen} ${circ - arcLen}`);
-      // stroke-dashoffset: rotate so this quarter starts at the right angle
-      // Quarter i starts at angle: i * 90° - 90° (offset for SVG rotation)
-      // In dashoffset terms: offset = circ - (startAngleFraction * circ) + gapLen/2
-      const startFrac = (i * 90) / 360;
-      const offset = circ - (startFrac * circ) + (gapLen / 2);
-      el.setAttribute('stroke-dashoffset', offset);
-      // Initially invisible
-      el.style.opacity = '0';
-    });
-  };
-
-  window.setQuartersFilled = function(completedHours) {
-    const count = Math.min(completedHours, 4);
-    ['q1','q2','q3','q4'].forEach((id, i) => {
-      document.getElementById(id).style.opacity = i < count ? '1' : '0';
-    });
-  };
-
-  setupInnerQuarters();
+  // Quarter opacities are toggled directly by render() in app.js
 })();
 </script>
 </body>
