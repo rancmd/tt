@@ -8,9 +8,8 @@
   <meta name="theme-color" content="#EEF0EB" />
   <title>Time Tracker</title>
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Favicon: simple timer SVG -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='18' r='11' fill='none' stroke='%231A1C18' stroke-width='2.5'/><path d='M16 18 L16 10' stroke='%23C8F135' stroke-width='2.5' stroke-linecap='round'/><path d='M16 18 L21 13' stroke='%231A1C18' stroke-width='2' stroke-linecap='round'/><rect x='13' y='4' width='6' height='2.5' rx='1.25' fill='%231A1C18'/></svg>" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="icon" type="image/png" href="icon.png" />
 </head>
 <body>
 
@@ -21,12 +20,10 @@
   </div>
 
   <div class="circle-section">
-    <!-- Long-press 3s = reset -->
     <div class="circle-wrap" id="circle-wrap">
 
       <svg class="circle-svg" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-        <!-- INNER ring r=108: visible between button (r=101) and outer ticks (r=118) -->
+        <!-- INNER ring r=108: 4 quarters = 4 hours -->
         <!-- C=678.58, arc=159.47, rest=519.12 -->
         <circle class="ring-inner-bg" cx="145" cy="145" r="108" />
         <circle class="ring-quarter" id="q1" cx="145" cy="145" r="108"
@@ -38,12 +35,11 @@
         <circle class="ring-quarter" id="q4" cx="145" cy="145" r="108"
           stroke-dasharray="159.47 519.12" stroke-dashoffset="169.65" style="opacity:0" />
 
-        <!-- ── OUTER ring: 60-min sweep ── -->
+        <!-- OUTER ring r=128: 60-min sweep -->
         <g id="ticks"></g>
         <circle class="ring-outer-bg"  cx="145" cy="145" r="128" />
         <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
           stroke-dasharray="804" stroke-dashoffset="804" />
-
       </svg>
 
       <button class="circle-btn" id="circle-btn" aria-label="Open activity menu">
@@ -52,12 +48,10 @@
         <span class="circle-unit">minutes</span>
       </button>
 
-      <!-- Reset ring fills during long-press -->
       <svg class="reset-ring-svg" viewBox="0 0 290 290" id="reset-svg" style="opacity:0;">
         <circle class="reset-ring" id="reset-ring" cx="145" cy="145" r="136"
           stroke-dasharray="855" stroke-dashoffset="855" />
       </svg>
-
     </div>
   </div>
 
@@ -72,17 +66,14 @@
 
 </div>
 
-<!-- Reset confirm toast -->
-<div class="toast" id="toast">Reset complete</div>
+<div class="toast" id="toast"></div>
 
 <!-- Overlay -->
 <div class="overlay" id="overlay">
   <div class="overlay-backdrop" id="overlay-backdrop"></div>
   <div class="overlay-sheet" id="overlay-sheet">
-
     <div class="sheet-handle"></div>
     <div class="sheet-subtitle">Tap a category — each tap = 15 min</div>
-
     <div class="categories-row">
       <div class="cat-col-wrap">
         <div class="col-label earn">+ Earn</div>
@@ -93,12 +84,8 @@
         <div class="cat-col" id="spend-col"></div>
       </div>
     </div>
-
-    <button class="confirm-btn" id="confirm-btn" onclick="confirmLog()" disabled>
-      Confirm
-    </button>
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmLog()" disabled>Confirm</button>
     <div class="warning" id="confirm-warning"></div>
-
   </div>
 </div>
 
@@ -106,26 +93,22 @@
 <script>
 (function () {
   const cx = 145, cy = 145;
-
-  // ── Outer tick marks (r = 128) ──
   const ticks = document.getElementById('ticks');
   for (let i = 0; i < 60; i++) {
-    const angle  = (i / 60) * 2 * Math.PI - Math.PI / 2;
-    const isMaj  = i % 5 === 0;
-    const rO     = 128;
-    const inner  = rO - (isMaj ? 10 : 5);
-    const line   = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', cx + inner  * Math.cos(angle));
-    line.setAttribute('y1', cy + inner  * Math.sin(angle));
-    line.setAttribute('x2', cx + (rO-1) * Math.cos(angle));
-    line.setAttribute('y2', cy + (rO-1) * Math.sin(angle));
+    const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
+    const isMaj = i % 5 === 0;
+    const rO = 128;
+    const inner = rO - (isMaj ? 10 : 5);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx + inner * Math.cos(angle));
+    line.setAttribute('y1', cy + inner * Math.sin(angle));
+    line.setAttribute('x2', cx + (rO - 1) * Math.cos(angle));
+    line.setAttribute('y2', cy + (rO - 1) * Math.sin(angle));
     line.setAttribute('stroke', 'rgba(26,28,24,0.12)');
     line.setAttribute('stroke-width', isMaj ? 1.5 : 0.8);
     line.setAttribute('stroke-linecap', 'round');
     ticks.appendChild(line);
   }
-
-  // Quarter opacities are toggled directly by render() in app.js
 })();
 </script>
 </body>

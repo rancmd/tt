@@ -22,6 +22,8 @@
   --accent-dark: #7FA010;
   --accent-dim: rgba(200,241,53,0.22);
   --accent-quarter: rgba(200,241,53,0.55);
+  --red: #E53935;
+  --red-dim: rgba(229,57,53,0.12);
   --border: rgba(26,28,24,0.08);
   --shadow: 0 2px 16px rgba(26,28,24,0.07);
   --radius: 20px;
@@ -67,7 +69,7 @@ body {
   letter-spacing: 0.3px;
 }
 
-/* ── Circle section ── */
+/* ── Circle ── */
 .circle-section {
   flex-shrink: 0;
   display: flex;
@@ -83,7 +85,6 @@ body {
   cursor: pointer;
 }
 
-/* Main rings SVG */
 .circle-svg {
   position: absolute;
   inset: 0;
@@ -92,7 +93,6 @@ body {
   transform: rotate(-90deg);
 }
 
-/* Reset indicator SVG (overlaid, same size) */
 .reset-ring-svg {
   position: absolute;
   inset: 0;
@@ -103,7 +103,7 @@ body {
   transition: opacity 0.15s ease;
 }
 
-/* ── Inner ring (quarters) ── */
+/* Inner quarters */
 .ring-inner-bg {
   fill: none;
   stroke: var(--surface2);
@@ -118,7 +118,7 @@ body {
   transition: opacity 0.35s ease;
 }
 
-/* ── Outer ring (60-min sweep) ── */
+/* Outer ring */
 .ring-outer-bg {
   fill: none;
   stroke: var(--surface2);
@@ -133,7 +133,12 @@ body {
   transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Reset ring (long-press feedback) ── */
+/* Outer ring in negative state */
+.ring-outer-prog.negative {
+  stroke: var(--red);
+}
+
+/* Reset ring */
 .reset-ring {
   fill: none;
   stroke: #FF5C5C;
@@ -142,7 +147,7 @@ body {
   transition: stroke-dashoffset 0.05s linear;
 }
 
-/* ── Circle button (center) ── */
+/* Circle center button */
 .circle-btn {
   position: absolute;
   inset: 44px;
@@ -178,6 +183,11 @@ body {
   color: var(--text);
   line-height: 1;
   letter-spacing: -3px;
+}
+
+/* Negative balance — show red number */
+.circle-value.negative {
+  color: var(--red);
 }
 
 .circle-unit {
@@ -233,10 +243,10 @@ body {
 .log-item {
   background: var(--card);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
+  padding: 12px 12px 12px 16px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   box-shadow: var(--shadow);
   flex-shrink: 0;
   animation: itemIn 0.2s ease;
@@ -248,13 +258,13 @@ body {
 }
 
 .log-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 
@@ -264,25 +274,51 @@ body {
 .log-info { flex: 1; min-width: 0; }
 
 .log-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text);
 }
 
 .log-time {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text3);
   margin-top: 1px;
 }
 
 .log-mins {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .log-mins.earn  { color: var(--accent-dark); }
 .log-mins.spend { color: var(--text2); }
+
+/* Delete button */
+.log-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(26,28,24,0.06);
+  color: var(--text3);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  margin-left: 4px;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1;
+}
+
+.log-delete:active {
+  background: var(--red-dim);
+  color: var(--red);
+  transform: scale(0.9);
+}
 
 /* ── Toast ── */
 .toast {
@@ -348,9 +384,7 @@ body {
   flex-direction: column;
 }
 
-.overlay.open .overlay-sheet {
-  transform: translateY(0);
-}
+.overlay.open .overlay-sheet { transform: translateY(0); }
 
 .sheet-handle {
   width: 36px;
@@ -391,11 +425,7 @@ body {
 .col-label.earn  { color: var(--accent-dark); }
 .col-label.spend { color: var(--text3); }
 
-.cat-col {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
+.cat-col { display: flex; flex-direction: column; gap: 7px; }
 
 .cat-btn {
   background: var(--card);
@@ -466,10 +496,7 @@ body {
   line-height: 1.2;
 }
 
-.cat-pts {
-  font-size: 11px;
-  color: var(--text3);
-}
+.cat-pts { font-size: 11px; color: var(--text3); }
 
 .confirm-btn {
   width: 100%;
@@ -487,15 +514,8 @@ body {
   text-align: center;
 }
 
-.confirm-btn:active:not(:disabled) {
-  transform: scale(0.98);
-  background: #b0d820;
-}
-
-.confirm-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
+.confirm-btn:active:not(:disabled) { transform: scale(0.98); background: #b0d820; }
+.confirm-btn:disabled { opacity: 0.35; cursor: default; }
 
 .warning {
   font-size: 12px;
