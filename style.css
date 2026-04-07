@@ -138,6 +138,11 @@ body {
   stroke: var(--red);
 }
 
+/* Inner quarters in negative state */
+.ring-quarter.negative {
+  stroke: rgba(229,57,53,0.55);
+}
+
 /* Reset ring */
 .reset-ring {
   fill: none;

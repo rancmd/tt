@@ -65,10 +65,11 @@ function render() {
 
   // Inner quarters: completed hours (floor of abs balance / 60)
   const hours = Math.min(Math.floor(absBal / 60), 4);
-  document.getElementById('q1').style.opacity = hours >= 1 ? '1' : '0';
-  document.getElementById('q2').style.opacity = hours >= 2 ? '1' : '0';
-  document.getElementById('q3').style.opacity = hours >= 3 ? '1' : '0';
-  document.getElementById('q4').style.opacity = hours >= 4 ? '1' : '0';
+  ['q1','q2','q3','q4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.opacity = i < hours ? '1' : '0';
+    el.classList.toggle('negative', isNeg);
+  });
 
   // Date
   const d = new Date();
@@ -271,11 +272,13 @@ function updateConfirm() {
 
   const mins = currentSel.taps * 15;
   const sign = currentSel.side === 'earn' ? '+' : '−';
+  const wouldBeNeg = currentSel.side === 'spend' && (state.balance - mins) < 0;
 
-  // No balance check for spend — allow going negative
-  warn.textContent = '';
+  warn.textContent = wouldBeNeg ? 'Balance will go negative' : '';
   btn.disabled = false;
   btn.textContent = `Confirm ${sign}${mins} min`;
+  btn.style.background = wouldBeNeg ? 'var(--red)' : '';
+  btn.style.color = wouldBeNeg ? '#fff' : '';
 }
 
 function confirmLog() {
