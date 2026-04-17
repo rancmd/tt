@@ -2,118 +2,244 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#EEF0EB" />
-  <title>Time Tracker</title>
+  <title>TT — Time Tracker</title>
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="shortcut icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-  <meta name="apple-mobile-web-app-title" content="timer" />
-  <link rel="manifest" href="/site.webmanifest" />
 </head>
 <body>
 
-<div id="app">
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 12"/>
+      </svg>
+      <span>Time</span>
+    </button>
+    <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span>Stats</span>
+    </button>
+  </nav>
 
-  <div class="header">
-    <div class="header-date" id="header-date">—</div>
+  <!-- ═══════════════════════════════ HOME TAB ═══════════════════════════════ -->
+  <div id="tab-home" class="tab-content active">
+
+    <!-- Circle -->
+    <div class="circle-wrap" id="circleWrap">
+      <svg class="circle-svg" viewBox="0 0 290 290" id="circleSvg">
+        <!-- Outer ring track -->
+        <circle class="ring-track" cx="145" cy="145" r="128"/>
+        <!-- Outer ring progress (0–60 min sweep) -->
+        <circle class="ring-outer" id="ringOuter" cx="145" cy="145" r="128"
+          stroke-dasharray="804.25" stroke-dashoffset="804.25"
+          transform="rotate(-90 145 145)"/>
+        <!-- Inner quarter segments (4 hours) -->
+        <circle class="ring-inner ring-q" id="ringQ1" cx="145" cy="145" r="108"
+          stroke-dasharray="170.04 508.94" stroke-dashoffset="170.04"
+          transform="rotate(-90 145 145)"/>
+        <circle class="ring-inner ring-q" id="ringQ2" cx="145" cy="145" r="108"
+          stroke-dasharray="170.04 508.94" stroke-dashoffset="0"
+          transform="rotate(0 145 145)"/>
+        <circle class="ring-inner ring-q" id="ringQ3" cx="145" cy="145" r="108"
+          stroke-dasharray="170.04 508.94" stroke-dashoffset="-170.04"
+          transform="rotate(0 145 145)"/>
+        <circle class="ring-inner ring-q" id="ringQ4" cx="145" cy="145" r="108"
+          stroke-dasharray="170.04 508.94" stroke-dashoffset="-340.08"
+          transform="rotate(0 145 145)"/>
+        <!-- Reset progress ring -->
+        <circle class="ring-reset" id="ringReset" cx="145" cy="145" r="138"
+          stroke-dasharray="867.08" stroke-dashoffset="867.08"
+          transform="rotate(-90 145 145)"/>
+      </svg>
+      <div class="circle-center" id="circleCenter">
+        <span class="balance-num" id="balanceNum">0</span>
+        <span class="balance-label">min</span>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="log-wrap">
+      <div class="log-header">
+        <span class="log-title">Today</span>
+        <span class="log-total" id="logTotal"></span>
+      </div>
+      <div class="log-list" id="logList">
+        <div class="log-empty" id="logEmpty">No activity yet</div>
+      </div>
+    </div>
+
+    <!-- Cat -->
+    <div class="cat-wrap" id="catWrap" onclick="catSpeak()">
+      <svg class="cat-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <!-- body -->
+        <ellipse cx="40" cy="54" rx="22" ry="18" fill="#9EA299" opacity="0.35"/>
+        <!-- tail -->
+        <path d="M58 62 Q72 55 68 44 Q65 38 60 42" stroke="#9EA299" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5"/>
+        <!-- head -->
+        <circle cx="40" cy="34" r="16" fill="#9EA299" opacity="0.4"/>
+        <!-- ears -->
+        <polygon points="28,22 24,12 34,20" fill="#9EA299" opacity="0.5"/>
+        <polygon points="52,22 56,12 46,20" fill="#9EA299" opacity="0.5"/>
+        <!-- inner ears -->
+        <polygon points="29,21 26,15 34,20" fill="#EEF0EB" opacity="0.6"/>
+        <polygon points="51,21 54,15 46,20" fill="#EEF0EB" opacity="0.6"/>
+        <!-- eyes -->
+        <ellipse cx="34" cy="33" rx="3" ry="3.5" fill="#1A1C18" opacity="0.7"/>
+        <ellipse cx="46" cy="33" rx="3" ry="3.5" fill="#1A1C18" opacity="0.7"/>
+        <!-- eye shine -->
+        <circle cx="35.2" cy="31.8" r="1" fill="white" opacity="0.8"/>
+        <circle cx="47.2" cy="31.8" r="1" fill="white" opacity="0.8"/>
+        <!-- nose -->
+        <ellipse cx="40" cy="38" rx="2" ry="1.5" fill="#E8A0A0" opacity="0.8"/>
+        <!-- whiskers -->
+        <line x1="22" y1="37" x2="36" y2="38.5" stroke="#1A1C18" stroke-width="0.8" opacity="0.4"/>
+        <line x1="22" y1="40" x2="36" y2="39.5" stroke="#1A1C18" stroke-width="0.8" opacity="0.4"/>
+        <line x1="58" y1="37" x2="44" y2="38.5" stroke="#1A1C18" stroke-width="0.8" opacity="0.4"/>
+        <line x1="58" y1="40" x2="44" y2="39.5" stroke="#1A1C18" stroke-width="0.8" opacity="0.4"/>
+        <!-- mouth -->
+        <path d="M38 40.5 Q40 42.5 42 40.5" stroke="#1A1C18" stroke-width="0.8" fill="none" opacity="0.5"/>
+      </svg>
+      <div class="cat-bubble" id="catBubble">Miao! 🐱</div>
+    </div>
+
+  </div><!-- end tab-home -->
+
+
+  <!-- ═══════════════════════════════ STATS TAB ═══════════════════════════════ -->
+  <div id="tab-stats" class="tab-content">
+    <div class="stats-page">
+      <h2 class="stats-heading">Achievement Stats</h2>
+      <p class="stats-sub">All-time totals — never reset</p>
+
+      <div class="stats-grid" id="statsGrid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="stats-total-row" id="statsTotalRow">
+        <!-- filled by JS -->
+      </div>
+    </div>
   </div>
 
-  <div class="circle-section">
-    <div class="circle-wrap" id="circle-wrap">
 
-      <svg class="circle-svg" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- INNER ring r=108: 4 quarters = 4 hours -->
-        <!-- C=678.58, arc=159.47, rest=519.12 -->
-        <circle class="ring-inner-bg" cx="145" cy="145" r="108" />
-        <circle class="ring-quarter" id="q1" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="678.58" style="opacity:0" />
-        <circle class="ring-quarter" id="q2" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="508.94" style="opacity:0" />
-        <circle class="ring-quarter" id="q3" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="339.29" style="opacity:0" />
-        <circle class="ring-quarter" id="q4" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="169.65" style="opacity:0" />
+  <!-- ═══════════════════════════════ OVERLAY ═══════════════════════════════ -->
+  <div class="overlay" id="overlay">
+    <div class="overlay-sheet">
+      <div class="overlay-handle"></div>
+      <div class="overlay-cols">
 
-        <!-- OUTER ring r=128: 60-min sweep -->
-        <g id="ticks"></g>
-        <circle class="ring-outer-bg"  cx="145" cy="145" r="128" />
-        <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
-          stroke-dasharray="804" stroke-dashoffset="804" />
-      </svg>
+        <!-- EARN column -->
+        <div class="ov-col">
+          <div class="ov-col-title earn-title">Earn</div>
+          <button class="ov-btn earn-btn" data-cat="Homework" data-dir="earn" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+            </span>
+            <span class="ov-label">Homework</span>
+            <span class="ov-ticks" id="ticks-Homework"></span>
+          </button>
+          <button class="ov-btn earn-btn" data-cat="Reading" data-dir="earn" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+            </span>
+            <span class="ov-label">Reading</span>
+            <span class="ov-ticks" id="ticks-Reading"></span>
+          </button>
+          <button class="ov-btn earn-btn" data-cat="Dog Walk" data-dir="earn" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="2"/><path d="M3 22l3-8 2 3 3-5 5 10"/><path d="M18 6l2-2M20 8l2-2M18 10l2 2"/></svg>
+            </span>
+            <span class="ov-label">Dog Walk</span>
+            <span class="ov-ticks" id="ticks-Dog Walk"></span>
+          </button>
+          <button class="ov-btn earn-btn" data-cat="Other" data-dir="earn" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </span>
+            <span class="ov-label">Other</span>
+            <span class="ov-ticks" id="ticks-Other"></span>
+          </button>
+          <button class="ov-btn earn-btn bonus-btn" data-cat="Bonus" data-dir="earn" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </span>
+            <span class="ov-label">Bonus</span>
+            <span class="ov-ticks" id="ticks-Bonus"></span>
+          </button>
+        </div>
 
-      <button class="circle-btn" id="circle-btn" aria-label="Open activity menu">
-        <span class="circle-label">SCREEN TIME</span>
-        <span class="circle-value" id="balance-val">0</span>
-        <span class="circle-unit">minutes</span>
+        <!-- USE column -->
+        <div class="ov-col">
+          <div class="ov-col-title use-title">Use</div>
+          <button class="ov-btn use-btn" data-cat="TV" data-dir="use" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+            </span>
+            <span class="ov-label">TV</span>
+            <span class="ov-ticks" id="ticks-TV"></span>
+          </button>
+          <button class="ov-btn use-btn" data-cat="Computer" data-dir="use" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </span>
+            <span class="ov-label">Computer</span>
+            <span class="ov-ticks" id="ticks-Computer"></span>
+          </button>
+          <button class="ov-btn use-btn" data-cat="Phone" data-dir="use" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </span>
+            <span class="ov-label">Phone</span>
+            <span class="ov-ticks" id="ticks-Phone"></span>
+          </button>
+          <button class="ov-btn use-btn" data-cat="Tablet" data-dir="use" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </span>
+            <span class="ov-label">Tablet</span>
+            <span class="ov-ticks" id="ticks-Tablet"></span>
+          </button>
+          <button class="ov-btn use-btn" data-cat="Play" data-dir="use" onclick="selectCat(this)">
+            <span class="ov-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="12" rx="3"/>
+                <circle cx="8" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <line x1="15" y1="10" x2="15" y2="14"/><line x1="13" y1="12" x2="17" y2="12"/>
+              </svg>
+            </span>
+            <span class="ov-label">Play</span>
+            <span class="ov-ticks" id="ticks-Play"></span>
+          </button>
+        </div>
+
+      </div><!-- overlay-cols -->
+
+      <button class="confirm-btn" id="confirmBtn" onclick="confirmAction()" disabled>
+        Select activity
       </button>
-
-      <svg class="reset-ring-svg" viewBox="0 0 290 290" id="reset-svg" style="opacity:0;">
-        <circle class="reset-ring" id="reset-ring" cx="145" cy="145" r="136"
-          stroke-dasharray="855" stroke-dashoffset="855" />
-      </svg>
     </div>
   </div>
 
-  <div class="log-section">
-    <div class="log-header">
-      <span class="log-title">Today's Log</span>
-    </div>
-    <div class="log-list" id="log-list">
-      <div class="log-empty">No activity logged today</div>
-    </div>
-  </div>
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- Overlay -->
-<div class="overlay" id="overlay">
-  <div class="overlay-backdrop" id="overlay-backdrop"></div>
-  <div class="overlay-sheet" id="overlay-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-subtitle">Tap a category — each tap = 15 min</div>
-    <div class="categories-row">
-      <div class="cat-col-wrap">
-        <div class="col-label earn">+ Earn</div>
-        <div class="cat-col" id="earn-col"></div>
-      </div>
-      <div class="cat-col-wrap">
-        <div class="col-label spend">− Use</div>
-        <div class="cat-col" id="spend-col"></div>
-      </div>
-    </div>
-    <button class="confirm-btn" id="confirm-btn" onclick="confirmLog()" disabled>Confirm</button>
-    <div class="warning" id="confirm-warning"></div>
-  </div>
-</div>
-
-<script src="app.js"></script>
-<script>
-(function () {
-  const cx = 145, cy = 145;
-  const ticks = document.getElementById('ticks');
-  for (let i = 0; i < 60; i++) {
-    const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
-    const isMaj = i % 5 === 0;
-    const rO = 128;
-    const inner = rO - (isMaj ? 10 : 5);
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', cx + inner * Math.cos(angle));
-    line.setAttribute('y1', cy + inner * Math.sin(angle));
-    line.setAttribute('x2', cx + (rO - 1) * Math.cos(angle));
-    line.setAttribute('y2', cy + (rO - 1) * Math.sin(angle));
-    line.setAttribute('stroke', 'rgba(26,28,24,0.12)');
-    line.setAttribute('stroke-width', isMaj ? 1.5 : 0.8);
-    line.setAttribute('stroke-linecap', 'round');
-    ticks.appendChild(line);
-  }
-})();
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
