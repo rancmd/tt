@@ -28,7 +28,8 @@ let state      = loadState();
 let currentSel = null;
 
 // ── Persistence ──
-function today() { return new Date().toISOString().slice(0, 10); }
+function today()        { return new Date().toISOString().slice(0, 10); }
+function currentMonth() { const d = new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`; }
 
 function loadState() {
   try {
@@ -36,11 +37,13 @@ function loadState() {
     if (raw) {
       const s = JSON.parse(raw);
       if (s.date !== today()) { s.history = []; s.date = today(); }
-      if (!s.allTime) s.allTime = {};
+      if (!s.allTime)  s.allTime  = {};
+      // monthly reset: if stored month differs from current month, wipe allTime
+      if (s.statsMonth !== currentMonth()) { s.allTime = {}; s.statsMonth = currentMonth(); }
       return s;
     }
   } catch (e) {}
-  return { balance: 0, history: [], date: today(), allTime: {} };
+  return { balance: 0, history: [], date: today(), allTime: {}, statsMonth: currentMonth() };
 }
 
 function saveState() {
@@ -274,14 +277,14 @@ function updateConfirm() {
     return;
   }
 
-  const mins = currentSel.taps * 15;
-  const sign = currentSel.side === 'earn' ? '+' : '−';
-  const wouldBeNeg = currentSel.side === 'spend' && (state.balance - mins) < 0;
+  const mins    = currentSel.taps * 15;
+  const isSpend = currentSel.side === 'spend';
+  const sign    = isSpend ? '−' : '+';
 
   btn.disabled = false;
-  btn.textContent = `Confirm ${sign}${mins} min`;
-  btn.style.background = wouldBeNeg ? 'var(--red)' : '';
-  btn.style.color = wouldBeNeg ? '#fff' : '';
+  btn.textContent      = `Confirm ${sign}${mins} min`;
+  btn.style.background = isSpend ? 'var(--red)'    : 'var(--accent)';
+  btn.style.color      = isSpend ? '#fff'           : 'var(--text)';
 }
 
 function confirmLog() {
@@ -312,15 +315,15 @@ function confirmLog() {
 function renderStats() {
   const el = document.getElementById('stats-list');
   if (!el) return;
+
+  // keep statsMonth in sync
+  if (state.statsMonth !== currentMonth()) {
+    state.allTime = {};
+    state.statsMonth = currentMonth();
+    saveState();
+  }
+
   const allTime = state.allTime || {};
-
-  const rows = [
-    ...EARN_CATS.map(c => ({ ...c, side: 'earn' })),
-    ...SPEND_CATS.map(c => ({ ...c, side: 'spend' })),
-  ];
-
-  const totalEarn = EARN_CATS.reduce((s, c) => s + (allTime[c.id] || 0), 0);
-  const totalSpend = SPEND_CATS.reduce((s, c) => s + (allTime[c.id] || 0), 0);
 
   function fmtMins(m) {
     if (m === 0) return '0 min';
@@ -328,21 +331,27 @@ function renderStats() {
     const r = m % 60;
     if (h === 0) return `${r} min`;
     if (r === 0) return `${h}h`;
-    return `${h}h ${r}min`;
+    return `${h}h ${r}m`;
   }
 
+  const totalEarn  = EARN_CATS.reduce((s, c)  => s + (allTime[c.id] || 0), 0);
+  const totalSpend = SPEND_CATS.reduce((s, c) => s + (allTime[c.id] || 0), 0);
+
   el.innerHTML = `
-    <div class="stats-totals">
-      <div class="stats-total-item">
-        <span class="stats-total-label">⏱ Total Earned</span>
-        <span class="stats-total-val earn">${fmtMins(totalEarn)}</span>
+    <div class="stats-month-title">${currentMonth()}</div>
+
+    <div class="stats-grand">
+      <div class="stats-grand-row">
+        <span class="stats-grand-label">Total Earned</span>
+        <span class="stats-grand-val earn">${fmtMins(totalEarn)}</span>
       </div>
-      <div class="stats-total-item">
-        <span class="stats-total-label">📺 Total Used</span>
-        <span class="stats-total-val spend">${fmtMins(totalSpend)}</span>
+      <div class="stats-grand-row">
+        <span class="stats-grand-label">Total Used</span>
+        <span class="stats-grand-val spend">${fmtMins(totalSpend)}</span>
       </div>
     </div>
-    <div class="stats-section-label">Earned by activity</div>
+
+    <div class="stats-section-label">Earned</div>
     ${EARN_CATS.map(c => `
       <div class="stats-row">
         <span class="stats-icon">${c.icon}</span>
@@ -350,7 +359,8 @@ function renderStats() {
         <span class="stats-val earn">${fmtMins(allTime[c.id] || 0)}</span>
       </div>
     `).join('')}
-    <div class="stats-section-label">Used by activity</div>
+
+    <div class="stats-section-label">Used</div>
     ${SPEND_CATS.map(c => `
       <div class="stats-row">
         <span class="stats-icon">${c.icon}</span>
@@ -368,15 +378,6 @@ function switchTab(tab) {
   document.getElementById('page-' + tab).classList.add('active');
   document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
   if (tab === 'stats') renderStats();
-}
-
-// ── Cat ──
-let catBubbleTimer = null;
-function catSpeak() {
-  const bubble = document.getElementById('cat-bubble');
-  bubble.classList.add('show');
-  clearTimeout(catBubbleTimer);
-  catBubbleTimer = setTimeout(() => bubble.classList.remove('show'), 2000);
 }
 
 // ── Init ──
