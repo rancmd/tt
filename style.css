@@ -576,6 +576,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  width: 100%;
 }
 
 .cat-icon { font-size: 22px; line-height: 1; }

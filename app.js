@@ -66,7 +66,12 @@ function render() {
   const minInHour = absBal % 60;
   const outerRing = document.getElementById('ring-outer');
   outerRing.setAttribute('stroke-dasharray', OUTER_C);
-  outerRing.style.strokeDashoffset = OUTER_C * (1 - minInHour / 60);
+  if (isNeg) {
+    // Counter-clockwise: use negative offset to fill leftward
+    outerRing.style.strokeDashoffset = -(OUTER_C * (minInHour / 60));
+  } else {
+    outerRing.style.strokeDashoffset = OUTER_C * (1 - minInHour / 60);
+  }
   outerRing.classList.toggle('negative', isNeg);
 
   // Inner quarters: completed hours (floor of abs balance / 60)
