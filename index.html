@@ -41,23 +41,27 @@
     <div class="circle-wrap" id="circle-wrap">
 
       <svg class="circle-svg" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- INNER ring r=108: 4 quarters = 4 hours -->
-        <!-- C=678.58, arc=159.47, rest=519.12 -->
+        <!-- bg tracks never mirror -->
         <circle class="ring-inner-bg" cx="145" cy="145" r="108" />
-        <circle class="ring-quarter" id="q1" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="678.58" style="opacity:0" />
-        <circle class="ring-quarter" id="q2" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="508.94" style="opacity:0" />
-        <circle class="ring-quarter" id="q3" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="339.29" style="opacity:0" />
-        <circle class="ring-quarter" id="q4" cx="145" cy="145" r="108"
-          stroke-dasharray="159.47 519.12" stroke-dashoffset="169.65" style="opacity:0" />
-
-        <!-- OUTER ring r=128: 60-min sweep -->
-        <g id="ticks"></g>
         <circle class="ring-outer-bg"  cx="145" cy="145" r="128" />
-        <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
-          stroke-dasharray="804" stroke-dashoffset="804" />
+        <g id="ticks"></g>
+
+        <!-- arc group — mirrored horizontally when negative -->
+        <g id="arc-group">
+          <!-- INNER ring r=108: 4 quarters = 4 hours -->
+          <circle class="ring-quarter" id="q1" cx="145" cy="145" r="108"
+            stroke-dasharray="159.47 519.12" stroke-dashoffset="678.58" style="opacity:0" />
+          <circle class="ring-quarter" id="q2" cx="145" cy="145" r="108"
+            stroke-dasharray="159.47 519.12" stroke-dashoffset="508.94" style="opacity:0" />
+          <circle class="ring-quarter" id="q3" cx="145" cy="145" r="108"
+            stroke-dasharray="159.47 519.12" stroke-dashoffset="339.29" style="opacity:0" />
+          <circle class="ring-quarter" id="q4" cx="145" cy="145" r="108"
+            stroke-dasharray="159.47 519.12" stroke-dashoffset="169.65" style="opacity:0" />
+
+          <!-- OUTER ring r=128: 60-min sweep -->
+          <circle class="ring-outer-prog" id="ring-outer" cx="145" cy="145" r="128"
+            stroke-dasharray="804" stroke-dashoffset="804" />
+        </g>
       </svg>
 
       <button class="circle-btn" id="circle-btn" aria-label="Open activity menu">

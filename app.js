@@ -66,13 +66,16 @@ function render() {
   const minInHour = absBal % 60;
   const outerRing = document.getElementById('ring-outer');
   outerRing.setAttribute('stroke-dasharray', OUTER_C);
-  if (isNeg) {
-    // Counter-clockwise: use negative offset to fill leftward
-    outerRing.style.strokeDashoffset = -(OUTER_C * (minInHour / 60));
-  } else {
-    outerRing.style.strokeDashoffset = OUTER_C * (1 - minInHour / 60);
-  }
+  outerRing.style.strokeDashoffset = OUTER_C * (1 - minInHour / 60);
   outerRing.classList.toggle('negative', isNeg);
+
+  // Mirror the entire arc group horizontally when negative so arcs fill counter-clockwise
+  const arcGroup = document.getElementById('arc-group');
+  if (isNeg) {
+    arcGroup.setAttribute('transform', 'translate(290,0) scale(-1,1)');
+  } else {
+    arcGroup.removeAttribute('transform');
+  }
 
   // Inner quarters: completed hours (floor of abs balance / 60)
   const hours = Math.min(Math.floor(absBal / 60), 4);
