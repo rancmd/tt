@@ -72,7 +72,7 @@ function render() {
   // Mirror the entire arc group horizontally when negative so arcs fill counter-clockwise
   const arcGroup = document.getElementById('arc-group');
   if (isNeg) {
-    arcGroup.setAttribute('transform', 'translate(290,0) scale(-1,1)');
+    arcGroup.setAttribute('transform', 'translate(0,290) scale(1,-1)');
   } else {
     arcGroup.removeAttribute('transform');
   }
